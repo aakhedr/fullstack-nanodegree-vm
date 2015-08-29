@@ -5,7 +5,6 @@
 
 import psycopg2
 
-
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
@@ -13,14 +12,28 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
-
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute('DELETE FROM matches')
+    connection.commit()
+    connection.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
-
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute('DELETE FROM players')
+    connection.commit()
+    connection.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM players")
+    numPlayers = cursor.fetchall()[0][0]
+    connection.close()
+    return numPlayers
 
 
 def registerPlayer(name):
@@ -32,6 +45,11 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO players (name) VALUES (%s)", (name,))
+    connection.commit()
+    connection.close()
 
 
 def playerStandings():
@@ -47,6 +65,12 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM standings")
+    standings = cursor.fetchall()
+    connection.close()
+    return standings
 
 
 def reportMatch(winner, loser):
@@ -56,7 +80,11 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO matches (player1, player2, winner) VALUES (%s, %s, %s)", (winner, loser, winner,))
+    connection.commit()
+    connection.close()
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
@@ -73,5 +101,9 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
-
-
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM pairings")
+    pairings = cursor.fetchall()
+    connection.close()
+    return  pairings
